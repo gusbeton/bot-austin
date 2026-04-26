@@ -17,7 +17,10 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const CHANNEL_ID = "1487590787284734143";
+const CHANNEL_ID = "1498061270165884928";
+
+// simpan order terakhir
+let lastOrderMessageId = null;
 
 // =======================
 // DATA
@@ -31,7 +34,7 @@ function saveData(data) {
 }
 
 // =======================
-// READY (AUTO PANEL)
+// AUTO PANEL
 // =======================
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
@@ -48,7 +51,7 @@ client.once("ready", async () => {
   );
 
   if (sudahAda) {
-    console.log("Panel sudah ada, skip");
+    console.log("Panel sudah ada");
     return;
   }
 
@@ -63,7 +66,7 @@ client.once("ready", async () => {
   const btn = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("order")
-      .setLabel("Order")
+      .setLabel("Pesan")
       .setStyle(ButtonStyle.Primary)
   );
 
@@ -71,8 +74,6 @@ client.once("ready", async () => {
     embeds: [embed],
     components: [btn]
   });
-
-  console.log("Panel dikirim");
 });
 
 // =======================
@@ -85,7 +86,7 @@ client.on("interactionCreate", async (interaction) => {
   // =======================
   if (interaction.isButton()) {
 
-    // ORDER BUTTON
+    // PESAN
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -96,7 +97,7 @@ client.on("interactionCreate", async (interaction) => {
       }));
 
       const select = new StringSelectMenuBuilder()
-        .setCustomId("pilih_senjata")
+        .setCustomId("pilih")
         .setPlaceholder("Pilih senjata...")
         .addOptions(options);
 
@@ -107,37 +108,17 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // DELIVERED
-    if (interaction.customId.startsWith("done_")) {
-
-      const embed = EmbedBuilder.from(interaction.message.embeds[0])
-        .setColor("Green")
-        .addFields({ name: "Status", value: "✅ Delivered" });
-
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("order")
-          .setLabel("Order Lagi")
-          .setStyle(ButtonStyle.Primary)
-      );
-
-      await interaction.update({
-        embeds: [embed],
-        components: [row]
-      });
-    }
-
-    // SOLD
+    // SELESAI
     if (interaction.customId.startsWith("sold_")) {
 
       const embed = EmbedBuilder.from(interaction.message.embeds[0])
         .setColor("Grey")
-        .addFields({ name: "Status", value: "❌ Sold / Cancel" });
+        .addFields({ name: "Status", value: "✅ Selesai" });
 
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId("order")
-          .setLabel("Order Lagi")
+          .setLabel("Pesan Lagi")
           .setStyle(ButtonStyle.Primary)
       );
 
@@ -153,7 +134,7 @@ client.on("interactionCreate", async (interaction) => {
   // =======================
   if (interaction.isStringSelectMenu()) {
 
-    if (interaction.customId === "pilih_senjata") {
+    if (interaction.customId === "pilih") {
 
       const senjata = interaction.values[0];
 
@@ -187,28 +168,20 @@ client.on("interactionCreate", async (interaction) => {
       let data = loadData();
       const item = data.weapons.find(w => w.name === senjata);
 
-      if (!item) {
+      if (!item || jumlah > item.stock) {
         return interaction.reply({
-          content: "❌ Senjata tidak ditemukan!",
+          content: "❌ Barang tidak tersedia",
           ephemeral: true
         });
       }
 
       if (isNaN(jumlah) || jumlah <= 0) {
         return interaction.reply({
-          content: "❌ Jumlah tidak valid!",
+          content: "❌ Jumlah tidak valid",
           ephemeral: true
         });
       }
 
-      if (jumlah > item.stock) {
-        return interaction.reply({
-          content: "❌ Barang tidak tersedia!",
-          ephemeral: true
-        });
-      }
-
-      // Kurangi stock
       item.stock -= jumlah;
       saveData(data);
 
@@ -223,32 +196,55 @@ client.on("interactionCreate", async (interaction) => {
         )
         .setColor("Yellow");
 
+      // tombol order baru
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-          .setCustomId(`done_${orderId}`)
-          .setLabel("Delivered")
-          .setStyle(ButtonStyle.Success),
-
-        new ButtonBuilder()
           .setCustomId(`sold_${orderId}`)
-          .setLabel("Sold")
+          .setLabel("Selesai")
           .setStyle(ButtonStyle.Danger),
 
         new ButtonBuilder()
           .setCustomId("order")
-          .setLabel("Order Lagi")
+          .setLabel("Pesan Lagi")
           .setStyle(ButtonStyle.Primary)
       );
 
+      // =======================
+      // EDIT ORDER LAMA
+      // =======================
+      if (lastOrderMessageId) {
+        try {
+          const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
+
+          const oldId = oldMsg.components[0]?.components[0]?.customId?.split("_")[1];
+
+          const oldRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setCustomId(`sold_${oldId}`)
+              .setLabel("Selesai")
+              .setStyle(ButtonStyle.Danger)
+          );
+
+          await oldMsg.edit({
+            components: [oldRow]
+          });
+
+        } catch (err) {
+          console.log("Gagal edit order lama");
+        }
+      }
+
       await interaction.reply({
-        content: "✅ Order berhasil dikirim!",
+        content: "✅ Order dikirim",
         ephemeral: true
       });
 
-      await interaction.channel.send({
+      const newMsg = await interaction.channel.send({
         embeds: [embed],
         components: [row]
       });
+
+      lastOrderMessageId = newMsg.id;
     }
   }
 });
