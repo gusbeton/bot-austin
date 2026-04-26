@@ -89,7 +89,6 @@ client.on("interactionCreate", async (interaction) => {
   // BUTTON
   if (interaction.isButton()) {
 
-    // PESAN
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -121,7 +120,6 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // SELESAI
     if (interaction.customId.startsWith("sold_")) {
 
       const embed = EmbedBuilder.from(interaction.message.embeds[0])
@@ -204,14 +202,24 @@ client.on("interactionCreate", async (interaction) => {
 
     const orderId = Date.now();
 
+    // 🔥 EXOTIC ORDER EMBED
     const embed = new EmbedBuilder()
-      .setAuthor({ name: "ORDER BARU", iconURL: icon })
-      .addFields(
-        { name: "👤 PEMESAN", value: `<@${interaction.user.id}>` },
-        { name: "🔫 SENJATA", value: senjata },
-        { name: "📦 JUMLAH", value: `${jumlah}` }
+      .setAuthor({ name: "📦 ORDER BARU", iconURL: icon })
+      .setDescription(
+`╭━━━ 📋 DETAIL ORDER ━━━╮
+
+👤 **Pemesan**
+> <@${interaction.user.id}>
+
+🔫 **Senjata**
+> ${senjata}
+
+📦 **Jumlah**
+> ${jumlah}
+
+╰━━━━━━━━━━━━━━━━━━╯`
       )
-      .setColor("Yellow")
+      .setColor("#2b2d31")
       .setFooter({
         text: `${guildName} • Menunggu diproses`,
         iconURL: icon
@@ -230,7 +238,6 @@ client.on("interactionCreate", async (interaction) => {
         .setStyle(ButtonStyle.Primary)
     );
 
-    // EDIT ORDER LAMA
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
