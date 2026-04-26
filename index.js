@@ -52,7 +52,7 @@ client.once("ready", async () => {
     .setDescription(list)
     .setColor("Red")
     .setFooter({
-      text: `${guild.name} • Weapon Store`,
+      text: `${guild.name} • Copyright ©️2018 - BTHL`,
       iconURL: icon
     })
     .setTimestamp();
@@ -109,7 +109,7 @@ client.on("interactionCreate", async (interaction) => {
         .setDescription("Silakan pilih senjata yang ingin dipesan")
         .setColor("Blue")
         .setFooter({
-          text: `${guildName} • Weapon System`,
+          text: `${guildName} • Copyright ©️2018 - BTHL`,
           iconURL: icon
         })
         .setTimestamp();
@@ -255,7 +255,7 @@ client.on("interactionCreate", async (interaction) => {
           .setColor("Green")
           .setDescription("✅ Order berhasil dikirim")
           .setFooter({
-            text: `${guildName} • System`,
+            text: `${guildName} • Copyright ©️2018 - BTHL`,
             iconURL: icon
           })
           .setTimestamp()
