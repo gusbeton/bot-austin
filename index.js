@@ -1,4 +1,4 @@
-vconst {
+const {
   Client,
   GatewayIntentBits,
   EmbedBuilder,
@@ -17,8 +17,8 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-// ⛔ BIARKAN (punya lu)
-const CHANNEL_ID = "1498061270165884928";
+// ⛔ BIARKAN PUNYA LU
+const CHANNEL_ID = "ISI_CHANNEL_ID_KAMU";
 
 let lastOrderMessageId = null;
 
@@ -81,6 +81,7 @@ client.on("interactionCreate", async (interaction) => {
   // BUTTON
   if (interaction.isButton()) {
 
+    // PESAN
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -102,7 +103,7 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // SELESAI → jadi history (NO BUTTON)
+    // SELESAI → jadi history
     if (interaction.customId.startsWith("sold_")) {
 
       const embed = EmbedBuilder.from(interaction.message.embeds[0])
@@ -111,7 +112,7 @@ client.on("interactionCreate", async (interaction) => {
 
       await interaction.update({
         embeds: [embed],
-        components: []
+        components: [] // 🔥 NO BUTTON
       });
     }
   }
@@ -191,7 +192,7 @@ client.on("interactionCreate", async (interaction) => {
           .setStyle(ButtonStyle.Primary)
       );
 
-      // EDIT ORDER LAMA → cuma Selesai
+      // EDIT ORDER LAMA → cuma tombol selesai
       if (lastOrderMessageId) {
         try {
           const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
@@ -209,7 +210,9 @@ client.on("interactionCreate", async (interaction) => {
             components: [oldRow]
           });
 
-        } catch (err) {}
+        } catch (err) {
+          console.log("Gagal edit order lama");
+        }
       }
 
       await interaction.reply({
