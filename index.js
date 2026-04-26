@@ -17,7 +17,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const CHANNEL_ID = "ISI_CHANNEL_ID_KAMU";
+const CHANNEL_ID = "1487590787284734143";
 
 // =======================
 // DATA
