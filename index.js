@@ -17,6 +17,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
+// ⛔ JANGAN DIUBAH (punya lu)
 const CHANNEL_ID = "1498061270165884928";
 
 // simpan order terakhir
@@ -50,10 +51,7 @@ client.once("ready", async () => {
     msg.embeds[0].title === "🔫 WEAPON STORE"
   );
 
-  if (sudahAda) {
-    console.log("Panel sudah ada");
-    return;
-  }
+  if (sudahAda) return console.log("Panel sudah ada");
 
   const data = loadData();
   const list = data.weapons.map(w => `• ${w.name}`).join("\n");
@@ -108,23 +106,16 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // SELESAI
+    // SELESAI (FINAL FIX)
     if (interaction.customId.startsWith("sold_")) {
 
       const embed = EmbedBuilder.from(interaction.message.embeds[0])
         .setColor("Grey")
         .addFields({ name: "Status", value: "✅ Selesai" });
 
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("order")
-          .setLabel("Pesan Lagi")
-          .setStyle(ButtonStyle.Primary)
-      );
-
       await interaction.update({
         embeds: [embed],
-        components: [row]
+        components: [] // 🔥 HAPUS SEMUA BUTTON
       });
     }
   }
@@ -210,7 +201,7 @@ client.on("interactionCreate", async (interaction) => {
       );
 
       // =======================
-      // EDIT ORDER LAMA
+      // EDIT ORDER LAMA (hapus Pesan Lagi)
       // =======================
       if (lastOrderMessageId) {
         try {
