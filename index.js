@@ -207,9 +207,9 @@ client.on("interactionCreate", async (interaction) => {
     const embed = new EmbedBuilder()
       .setAuthor({ name: "ORDER BARU", iconURL: icon })
       .addFields(
-        { name: "👤 Pemesan", value: `<@${interaction.user.id}>` },
-        { name: "🔫 Senjata", value: senjata },
-        { name: "📦 Jumlah", value: `${jumlah}` }
+        { name: "👤 PEMESAN", value: `<@${interaction.user.id}>` },
+        { name: "🔫 SENJATA", value: senjata },
+        { name: "📦 JUMLAH", value: `${jumlah}` }
       )
       .setColor("Yellow")
       .setFooter({
