@@ -1,4 +1,4 @@
-const {
+vconst {
   Client,
   GatewayIntentBits,
   EmbedBuilder,
@@ -17,10 +17,9 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-// ⛔ JANGAN DIUBAH (punya lu)
+// ⛔ BIARKAN (punya lu)
 const CHANNEL_ID = "1498061270165884928";
 
-// simpan order terakhir
 let lastOrderMessageId = null;
 
 // =======================
@@ -79,12 +78,9 @@ client.once("ready", async () => {
 // =======================
 client.on("interactionCreate", async (interaction) => {
 
-  // =======================
   // BUTTON
-  // =======================
   if (interaction.isButton()) {
 
-    // PESAN
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -106,7 +102,7 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // SELESAI (FINAL FIX)
+    // SELESAI → jadi history (NO BUTTON)
     if (interaction.customId.startsWith("sold_")) {
 
       const embed = EmbedBuilder.from(interaction.message.embeds[0])
@@ -115,14 +111,12 @@ client.on("interactionCreate", async (interaction) => {
 
       await interaction.update({
         embeds: [embed],
-        components: [] // 🔥 HAPUS SEMUA BUTTON
+        components: []
       });
     }
   }
 
-  // =======================
-  // SELECT MENU
-  // =======================
+  // SELECT
   if (interaction.isStringSelectMenu()) {
 
     if (interaction.customId === "pilih") {
@@ -146,9 +140,7 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
-  // =======================
-  // MODAL SUBMIT
-  // =======================
+  // MODAL
   if (interaction.isModalSubmit()) {
 
     if (interaction.customId.startsWith("order_")) {
@@ -187,7 +179,6 @@ client.on("interactionCreate", async (interaction) => {
         )
         .setColor("Yellow");
 
-      // tombol order baru
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId(`sold_${orderId}`)
@@ -200,9 +191,7 @@ client.on("interactionCreate", async (interaction) => {
           .setStyle(ButtonStyle.Primary)
       );
 
-      // =======================
-      // EDIT ORDER LAMA (hapus Pesan Lagi)
-      // =======================
+      // EDIT ORDER LAMA → cuma Selesai
       if (lastOrderMessageId) {
         try {
           const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
@@ -220,9 +209,7 @@ client.on("interactionCreate", async (interaction) => {
             components: [oldRow]
           });
 
-        } catch (err) {
-          console.log("Gagal edit order lama");
-        }
+        } catch (err) {}
       }
 
       await interaction.reply({
