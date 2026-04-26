@@ -50,7 +50,7 @@ client.once("ready", async () => {
 
   const embed = new EmbedBuilder()
     .setAuthor({
-      name: "WEAPON STORE",
+      name: "BETLEHEM SENJATA",
       iconURL: GUILD_ICON
     })
     .setDescription(list)
