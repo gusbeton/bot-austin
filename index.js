@@ -20,6 +20,7 @@ const client = new Client({
 const CHANNEL_ID = "1498061270165884928";
 
 let lastOrderMessageId = null;
+let GUILD_ICON = null;
 
 // =======================
 // DATA
@@ -33,7 +34,7 @@ function saveData(data) {
 }
 
 // =======================
-// AUTO PANEL (EDIT MODE)
+// READY
 // =======================
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
@@ -41,19 +42,22 @@ client.once("ready", async () => {
   const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
   if (!channel) return console.log("Channel tidak ditemukan");
 
+  const guild = channel.guild;
+  GUILD_ICON = guild.iconURL();
+
   const data = loadData();
   const list = data.weapons.map(w => `• ${w.name}`).join("\n");
 
   const embed = new EmbedBuilder()
     .setAuthor({
       name: "WEAPON STORE",
-      iconURL: client.user.displayAvatarURL()
+      iconURL: GUILD_ICON
     })
     .setDescription(list)
     .setColor("Red")
     .setFooter({
-      text: "Weapon System • Fast & Clean",
-      iconURL: client.user.displayAvatarURL()
+      text: guild.name,
+      iconURL: GUILD_ICON
     });
 
   const row = new ActionRowBuilder().addComponents(
@@ -67,22 +71,13 @@ client.once("ready", async () => {
 
   const panel = messages.find(msg =>
     msg.author.id === client.user.id &&
-    msg.embeds.length > 0 &&
-    msg.embeds[0].author?.name === "WEAPON STORE"
+    msg.embeds.length > 0
   );
 
   if (panel) {
-    await panel.edit({
-      embeds: [embed],
-      components: [row]
-    });
-    console.log("Panel diupdate");
+    await panel.edit({ embeds: [embed], components: [row] });
   } else {
-    await channel.send({
-      embeds: [embed],
-      components: [row]
-    });
-    console.log("Panel dikirim");
+    await channel.send({ embeds: [embed], components: [row] });
   }
 });
 
@@ -91,10 +86,10 @@ client.once("ready", async () => {
 // =======================
 client.on("interactionCreate", async (interaction) => {
 
-  // BUTTON
+  const icon = GUILD_ICON;
+
   if (interaction.isButton()) {
 
-    // PESAN
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -110,16 +105,10 @@ client.on("interactionCreate", async (interaction) => {
         .addOptions(options);
 
       const embed = new EmbedBuilder()
-        .setAuthor({
-          name: "PILIH SENJATA",
-          iconURL: client.user.displayAvatarURL()
-        })
-        .setDescription("Silakan pilih senjata yang ingin dipesan")
+        .setAuthor({ name: "PILIH SENJATA", iconURL: icon })
+        .setDescription("Silakan pilih senjata")
         .setColor("Blue")
-        .setFooter({
-          text: "Weapon System",
-          iconURL: client.user.displayAvatarURL()
-        });
+        .setFooter({ text: interaction.guild.name, iconURL: icon });
 
       await interaction.reply({
         embeds: [embed],
@@ -128,16 +117,12 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // SELESAI
     if (interaction.customId.startsWith("sold_")) {
 
       const embed = EmbedBuilder.from(interaction.message.embeds[0])
         .setColor("Grey")
         .addFields({ name: "Status", value: "✅ Selesai" })
-        .setFooter({
-          text: "Order telah diselesaikan",
-          iconURL: client.user.displayAvatarURL()
-        });
+        .setFooter({ text: "Order selesai", iconURL: icon });
 
       await interaction.update({
         embeds: [embed],
@@ -146,7 +131,6 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
-  // SELECT
   if (interaction.isStringSelectMenu()) {
 
     const senjata = interaction.values[0];
@@ -167,7 +151,6 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.showModal(modal);
   }
 
-  // MODAL
   if (interaction.isModalSubmit()) {
 
     const senjata = interaction.customId.replace("order_", "");
@@ -182,10 +165,7 @@ client.on("interactionCreate", async (interaction) => {
           new EmbedBuilder()
             .setColor("Red")
             .setDescription("❌ Barang tidak tersedia")
-            .setFooter({
-              text: "System",
-              iconURL: client.user.displayAvatarURL()
-            })
+            .setFooter({ text: "System", iconURL: icon })
         ],
         ephemeral: true
       });
@@ -197,10 +177,7 @@ client.on("interactionCreate", async (interaction) => {
           new EmbedBuilder()
             .setColor("Red")
             .setDescription("❌ Jumlah tidak valid")
-            .setFooter({
-              text: "System",
-              iconURL: client.user.displayAvatarURL()
-            })
+            .setFooter({ text: "System", iconURL: icon })
         ],
         ephemeral: true
       });
@@ -212,20 +189,14 @@ client.on("interactionCreate", async (interaction) => {
     const orderId = Date.now();
 
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: "ORDER BARU",
-        iconURL: client.user.displayAvatarURL()
-      })
+      .setAuthor({ name: "ORDER BARU", iconURL: icon })
       .addFields(
         { name: "👤 Pemesan", value: `<@${interaction.user.id}>` },
         { name: "🔫 Senjata", value: senjata },
         { name: "📦 Jumlah", value: `${jumlah}` }
       )
       .setColor("Yellow")
-      .setFooter({
-        text: "Menunggu diproses...",
-        iconURL: client.user.displayAvatarURL()
-      });
+      .setFooter({ text: "Menunggu diproses...", iconURL: icon });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -239,7 +210,6 @@ client.on("interactionCreate", async (interaction) => {
         .setStyle(ButtonStyle.Primary)
     );
 
-    // EDIT ORDER LAMA
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
@@ -253,10 +223,7 @@ client.on("interactionCreate", async (interaction) => {
             .setStyle(ButtonStyle.Danger)
         );
 
-        await oldMsg.edit({
-          components: [oldRow]
-        });
-
+        await oldMsg.edit({ components: [oldRow] });
       } catch {}
     }
 
@@ -265,10 +232,7 @@ client.on("interactionCreate", async (interaction) => {
         new EmbedBuilder()
           .setColor("Green")
           .setDescription("✅ Order berhasil dikirim")
-          .setFooter({
-            text: "System",
-            iconURL: client.user.displayAvatarURL()
-          })
+          .setFooter({ text: "System", iconURL: icon })
       ],
       ephemeral: true
     });
