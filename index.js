@@ -17,6 +17,8 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
+const CHANNEL_ID = "1487590787284734143";
+
 // =======================
 // 📂 DATA
 // =======================
@@ -29,50 +31,61 @@ function saveData(data) {
 }
 
 // =======================
-client.once("ready", () => {
+// 🚀 READY (AUTO PANEL)
+// =======================
+client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
+
+  const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
+  if (!channel) return console.log("Channel tidak ditemukan");
+
+  const messages = await channel.messages.fetch({ limit: 10 });
+
+  const sudahAda = messages.find(msg =>
+    msg.author.id === client.user.id &&
+    msg.embeds.length > 0 &&
+    msg.embeds[0].title === "🔫 WEAPON STORE"
+  );
+
+  if (sudahAda) {
+    console.log("Panel sudah ada, skip kirim");
+    return;
+  }
+
+  const data = loadData();
+  const list = data.weapons.map(w => `• ${w.name}`).join("\n");
+
+  const embed = new EmbedBuilder()
+    .setTitle("🔫 WEAPON STORE")
+    .setDescription(list)
+    .setColor("Red");
+
+  const btn = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("order")
+      .setLabel("Order")
+      .setStyle(ButtonStyle.Primary)
+  );
+
+  await channel.send({
+    embeds: [embed],
+    components: [btn]
+  });
+
+  console.log("Panel dikirim");
 });
 
+// =======================
+// 🎯 INTERACTION
 // =======================
 client.on("interactionCreate", async (interaction) => {
 
   // =======================
-  // 📋 /panel
-  // =======================
-  if (interaction.isChatInputCommand()) {
-    if (interaction.commandName === "panel") {
-
-      const data = loadData();
-
-      const list = data.weapons.map(w =>
-        `• ${w.name}`
-      ).join("\n");
-
-      const embed = new EmbedBuilder()
-        .setTitle("🔫 WEAPON STORE")
-        .setDescription(list)
-        .setColor("Red");
-
-      const btn = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("order")
-          .setLabel("Order")
-          .setStyle(ButtonStyle.Primary)
-      );
-
-      await interaction.reply({
-        embeds: [embed],
-        components: [btn]
-      });
-    }
-  }
-
-  // =======================
-  // 🔘 BUTTON
+  // BUTTON
   // =======================
   if (interaction.isButton()) {
 
-    // ORDER BUTTON
+    // ORDER
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -122,7 +135,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // =======================
-  // 🔽 SELECT MENU
+  // SELECT MENU
   // =======================
   if (interaction.isStringSelectMenu()) {
 
@@ -148,7 +161,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // =======================
-  // 📩 MODAL SUBMIT
+  // MODAL SUBMIT
   // =======================
   if (interaction.isModalSubmit()) {
 
@@ -213,7 +226,6 @@ client.on("interactionCreate", async (interaction) => {
         ephemeral: true
       });
 
-      // 👉 ORDER MASUK KE BAWAH
       await interaction.channel.send({
         embeds: [embed],
         components: [row]
