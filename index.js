@@ -63,7 +63,7 @@ client.once("ready", async () => {
   const panel = messages.find(msg =>
     msg.author.id === client.user.id &&
     msg.embeds.length > 0 &&
-    msg.embeds[0].title === "🔫 WEAPON STORE"
+    msg.embeds[0].title === "🔫 BETHLEHEM SENJATA"
   );
 
   if (panel) {
