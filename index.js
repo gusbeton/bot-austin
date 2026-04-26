@@ -46,7 +46,7 @@ client.once("ready", async () => {
   const list = data.weapons.map(w => `• ${w.name}`).join("\n");
 
   const embed = new EmbedBuilder()
-    .setTitle("🔫 WEAPON STORE")
+    .setTitle("🔫 BETHLEHEM SENJATA")
     .setDescription(list)
     .setColor("Red")
     .setFooter({ text: "Gunakan tombol di bawah untuk memesan" });
