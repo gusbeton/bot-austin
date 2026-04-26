@@ -17,10 +17,10 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-const CHANNEL_ID = "1487590787284734143";
+const CHANNEL_ID = "ISI_CHANNEL_ID_KAMU";
 
 // =======================
-// 📂 DATA
+// DATA
 // =======================
 function loadData() {
   return JSON.parse(fs.readFileSync("./data.json"));
@@ -31,7 +31,7 @@ function saveData(data) {
 }
 
 // =======================
-// 🚀 READY (AUTO PANEL)
+// READY (AUTO PANEL)
 // =======================
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
@@ -48,7 +48,7 @@ client.once("ready", async () => {
   );
 
   if (sudahAda) {
-    console.log("Panel sudah ada, skip kirim");
+    console.log("Panel sudah ada, skip");
     return;
   }
 
@@ -76,7 +76,7 @@ client.once("ready", async () => {
 });
 
 // =======================
-// 🎯 INTERACTION
+// INTERACTION
 // =======================
 client.on("interactionCreate", async (interaction) => {
 
@@ -85,7 +85,7 @@ client.on("interactionCreate", async (interaction) => {
   // =======================
   if (interaction.isButton()) {
 
-    // ORDER
+    // ORDER BUTTON
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -114,9 +114,16 @@ client.on("interactionCreate", async (interaction) => {
         .setColor("Green")
         .addFields({ name: "Status", value: "✅ Delivered" });
 
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("order")
+          .setLabel("Order Lagi")
+          .setStyle(ButtonStyle.Primary)
+      );
+
       await interaction.update({
         embeds: [embed],
-        components: []
+        components: [row]
       });
     }
 
@@ -127,9 +134,16 @@ client.on("interactionCreate", async (interaction) => {
         .setColor("Grey")
         .addFields({ name: "Status", value: "❌ Sold / Cancel" });
 
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("order")
+          .setLabel("Order Lagi")
+          .setStyle(ButtonStyle.Primary)
+      );
+
       await interaction.update({
         embeds: [embed],
-        components: []
+        components: [row]
       });
     }
   }
@@ -218,7 +232,12 @@ client.on("interactionCreate", async (interaction) => {
         new ButtonBuilder()
           .setCustomId(`sold_${orderId}`)
           .setLabel("Sold")
-          .setStyle(ButtonStyle.Danger)
+          .setStyle(ButtonStyle.Danger),
+
+        new ButtonBuilder()
+          .setCustomId("order")
+          .setLabel("Order Lagi")
+          .setStyle(ButtonStyle.Primary)
       );
 
       await interaction.reply({
