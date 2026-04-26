@@ -1,0 +1,19 @@
+{
+  "weapons": [
+    { "name": "Mauser Pistol", "stock": 10 },
+    { "name": "Volcanic Pistol", "stock": 10 },
+
+    { "name": "Double Action Revolver", "stock": 8 },
+    { "name": "Lemat Revolver", "stock": 6 },
+    { "name": "Cattleman Revolver", "stock": 10 },
+    { "name": "Schofield Revolver", "stock": 7 },
+    { "name": "Navy Revolver", "stock": 5 },
+
+    { "name": "Litchfield Repeater", "stock": 6 },
+    { "name": "Evans Repeater", "stock": 6 },
+    { "name": "Lancaster Repeater", "stock": 5 },
+
+    { "name": "Springfield", "stock": 5 },
+    { "name": "Bolt Action", "stock": 4 }
+  ]
+}
