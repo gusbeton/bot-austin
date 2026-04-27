@@ -29,6 +29,30 @@ function loadData() {
 }
 
 // =======================
+// 🔥 EMOJI HANDLER
+// =======================
+function getEmojiDisplay(emoji) {
+  if (!emoji) return "🔫";
+  return emoji;
+}
+
+function getEmojiObject(emoji) {
+  if (!emoji) return undefined;
+
+  // custom emoji <:name:id>
+  if (emoji.startsWith("<:")) {
+    const id = emoji.match(/\d+/)?.[0];
+    const name = emoji.match(/:(.*?):/)?.[1];
+    if (id && name) {
+      return { id, name };
+    }
+  }
+
+  // unicode emoji
+  return emoji;
+}
+
+// =======================
 // READY
 // =======================
 client.once("ready", async () => {
@@ -42,9 +66,8 @@ client.once("ready", async () => {
 
   const data = loadData();
 
-  // 🔥 PANEL LIST + ICON
   const list = data.weapons
-    .map(w => `${w.emoji || "🔫"} • ${w.name}`)
+    .map(w => `${getEmojiDisplay(w.emoji)} • ${w.name}`)
     .join("\n");
 
   const embed = new EmbedBuilder()
@@ -95,11 +118,10 @@ client.on("interactionCreate", async (interaction) => {
 
       const data = loadData();
 
-      // 🔥 DROPDOWN + ICON
       const options = data.weapons.map(w => ({
         label: w.name,
         value: w.name,
-        emoji: w.emoji || "🔫"
+        emoji: getEmojiObject(w.emoji)
       }));
 
       const select = new StringSelectMenuBuilder()
@@ -124,7 +146,7 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // 🔥 SELESAI → AUTO DELETE
+    // SELESAI → AUTO DELETE
     if (interaction.customId.startsWith("sold_")) {
 
       await interaction.reply({
@@ -175,9 +197,6 @@ client.on("interactionCreate", async (interaction) => {
   // =======================
   if (interaction.isModalSubmit()) {
 
-    const icon = interaction.guild.iconURL({ dynamic: true });
-    const guildName = interaction.guild.name;
-
     const senjata = interaction.customId.replace("order_", "");
     const jumlah = parseInt(interaction.fields.getTextInputValue("jumlah"));
 
@@ -212,7 +231,6 @@ client.on("interactionCreate", async (interaction) => {
 
     const orderId = Date.now();
 
-    // 🔥 ORDER + ICON
     const embed = new EmbedBuilder()
       .setAuthor({ name: "📦 ORDER BARU", iconURL: icon })
       .setDescription(
@@ -221,7 +239,7 @@ client.on("interactionCreate", async (interaction) => {
 👤 **Pemesan**
 > <@${interaction.user.id}>
 
-${weaponData.emoji || "🔫"} **Senjata**
+${getEmojiDisplay(weaponData.emoji)} **Senjata**
 > ${senjata}
 
 📦 **Jumlah**
