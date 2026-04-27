@@ -103,9 +103,30 @@ client.once("ready", async () => {
     .map(w => `${getEmojiDisplay(w.emoji, guild)} • ${w.name}`)
     .join("\n");
 
+  // =======================
+  // 📦 PANEL EMBED (FINAL VERSION)
+  // =======================
   const embed = new EmbedBuilder()
     .setAuthor({ name: "BETLEHEM SENJATA", iconURL: icon })
-    .setDescription(list)
+    .setDescription(
+`📦 **SYSTEM BETLEHEM**
+
+Ini adalah sistem **Betlehem Store** yang dibuat oleh **Marun** untuk mempermudah order senjata.
+
+Tujuannya agar **Nuel dan staff yang akses brankas tidak bingung dalam proses order.**
+
+━━━━━━━━━━━━━━
+
+📌 **CARA ORDER**
+Klik tombol **"PESAN"** di bawah untuk memilih senjata yang ingin dibeli.
+
+━━━━━━━━━━━━━━
+
+⚠️ Sistem ini otomatis mencatat setiap order dan akan diproses oleh admin.`
+    )
+    .addFields(
+      { name: "📜 LIST SENJATA", value: list || "Tidak ada data", inline: false }
+    )
     .setColor(0x00ffff)
     .setFooter({
       text: `${guild.name} • Copyright ©️2018 - BTHL`,
@@ -153,7 +174,7 @@ setInterval(async () => {
 
     console.log("🔁 Reconnect voice berhasil");
   }
-}, 60 * 1000);
+}, 60000);
 
 // =======================
 // INTERACTION
