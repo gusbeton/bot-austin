@@ -41,7 +41,11 @@ client.once("ready", async () => {
   const icon = guild.iconURL({ dynamic: true });
 
   const data = loadData();
-  const list = data.weapons.map(w => `• ${w.name}`).join("\n");
+
+  // 🔥 PANEL LIST + ICON
+  const list = data.weapons
+    .map(w => `${w.emoji || "🔫"} • ${w.name}`)
+    .join("\n");
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: "BETLEHEM SENJATA", iconURL: icon })
@@ -87,14 +91,15 @@ client.on("interactionCreate", async (interaction) => {
   // =======================
   if (interaction.isButton()) {
 
-    // PESAN
     if (interaction.customId === "order") {
 
       const data = loadData();
 
+      // 🔥 DROPDOWN + ICON
       const options = data.weapons.map(w => ({
         label: w.name,
-        value: w.name
+        value: w.name,
+        emoji: w.emoji || "🔫"
       }));
 
       const select = new StringSelectMenuBuilder()
@@ -177,9 +182,9 @@ client.on("interactionCreate", async (interaction) => {
     const jumlah = parseInt(interaction.fields.getTextInputValue("jumlah"));
 
     const data = loadData();
-    const item = data.weapons.find(w => w.name === senjata);
+    const weaponData = data.weapons.find(w => w.name === senjata);
 
-    if (!item) {
+    if (!weaponData) {
       return interaction.reply({
         embeds: [
           new EmbedBuilder()
@@ -207,7 +212,7 @@ client.on("interactionCreate", async (interaction) => {
 
     const orderId = Date.now();
 
-    // 🔥 EXOTIC ORDER EMBED
+    // 🔥 ORDER + ICON
     const embed = new EmbedBuilder()
       .setAuthor({ name: "📦 ORDER BARU", iconURL: icon })
       .setDescription(
@@ -216,7 +221,7 @@ client.on("interactionCreate", async (interaction) => {
 👤 **Pemesan**
 > <@${interaction.user.id}>
 
-🔫 **Senjata**
+${weaponData.emoji || "🔫"} **Senjata**
 > ${senjata}
 
 📦 **Jumlah**
@@ -243,7 +248,6 @@ client.on("interactionCreate", async (interaction) => {
         .setStyle(ButtonStyle.Primary)
     );
 
-    // EDIT ORDER LAMA
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
