@@ -217,16 +217,24 @@ client.on("interactionCreate", async (interaction) => {
     const embed = new EmbedBuilder()
       .setAuthor({ name: "📦 ORDER BARU", iconURL: icon })
       .setDescription(
-`> 📦 **DETAIL ORDER**
+`📦 **DETAIL ORDER**
+
+━━━━━━━━━━━━━━
 
 👤 **PEMESAN**
-└ <@${interaction.user.id}>
+<@${interaction.user.id}>
+
+━━━━━━━━━━━━━━
 
 ${getEmojiDisplay(weaponData.emoji, guild)} **SENJATA**
-└ ${senjata}
+${senjata}
+
+━━━━━━━━━━━━━━
 
 📦 **JUMLAH**
-└ ${jumlah}`
+${jumlah}
+
+━━━━━━━━━━━━━━`
       )
       .setColor("#2b2d31")
       .setFooter({
