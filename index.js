@@ -28,12 +28,8 @@ function loadData() {
   return JSON.parse(fs.readFileSync("./data.json"));
 }
 
-function saveData(data) {
-  fs.writeFileSync("./data.json", JSON.stringify(data, null, 2));
-}
-
 // =======================
-// READY (AUTO PANEL EDIT)
+// READY
 // =======================
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
@@ -86,7 +82,9 @@ client.on("interactionCreate", async (interaction) => {
   const icon = interaction.guild.iconURL({ dynamic: true });
   const guildName = interaction.guild.name;
 
+  // =======================
   // BUTTON
+  // =======================
   if (interaction.isButton()) {
 
     if (interaction.customId === "order") {
@@ -138,7 +136,9 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
+  // =======================
   // SELECT
+  // =======================
   if (interaction.isStringSelectMenu()) {
 
     const senjata = interaction.values[0];
@@ -159,25 +159,27 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.showModal(modal);
   }
 
+  // =======================
   // MODAL
+  // =======================
   if (interaction.isModalSubmit()) {
-
-    const icon = interaction.guild.iconURL({ dynamic: true });
-    const guildName = interaction.guild.name;
 
     const senjata = interaction.customId.replace("order_", "");
     const jumlah = parseInt(interaction.fields.getTextInputValue("jumlah"));
 
-    let data = loadData();
+    const data = loadData();
     const item = data.weapons.find(w => w.name === senjata);
 
-    if (!item || jumlah > item.stock) {
+    if (!item) {
       return interaction.reply({
         embeds: [
           new EmbedBuilder()
             .setColor("Red")
-            .setDescription("❌ Barang tidak tersedia")
-            .setFooter({ text: guildName, iconURL: icon })
+            .setDescription("❌ Senjata tidak ditemukan")
+            .setFooter({
+              text: `${guildName}`,
+              iconURL: icon
+            })
             .setTimestamp()
         ],
         ephemeral: true
@@ -190,19 +192,19 @@ client.on("interactionCreate", async (interaction) => {
           new EmbedBuilder()
             .setColor("Red")
             .setDescription("❌ Jumlah tidak valid")
-            .setFooter({ text: guildName, iconURL: icon })
+            .setFooter({
+              text: `${guildName}`,
+              iconURL: icon
+            })
             .setTimestamp()
         ],
         ephemeral: true
       });
     }
 
-    item.stock -= jumlah;
-    saveData(data);
-
     const orderId = Date.now();
 
-    // 🔥 EXOTIC ORDER EMBED
+    // 🔥 EXOTIC ORDER
     const embed = new EmbedBuilder()
       .setAuthor({ name: "📦 ORDER BARU", iconURL: icon })
       .setDescription(
