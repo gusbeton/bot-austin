@@ -23,7 +23,6 @@ const client = new Client({
 const CHANNEL_ID = "1498061270165884928";
 
 let lastOrderMessageId = null;
-let tempSelectMsg = null;
 
 // =======================
 // DATA
@@ -33,7 +32,7 @@ function loadData() {
 }
 
 // =======================
-// EMOJI
+// EMOJI FIX
 // =======================
 function getEmojiDisplay(emoji, guild) {
   if (!emoji) return "🔫";
@@ -60,7 +59,7 @@ function getEmojiObject(emoji) {
 }
 
 // =======================
-// READY (CYAN PANEL)
+// READY
 // =======================
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
@@ -78,13 +77,12 @@ client.once("ready", async () => {
     .map(w => `${getEmojiDisplay(w.emoji, guild)} • ${w.name}`)
     .join("\n");
 
-  // 💎 CYAN PREMIUM PANEL
   const embed = new EmbedBuilder()
-    .setAuthor({ name: "BETHLEHEM WEAPON STORE", iconURL: icon })
+    .setAuthor({ name: "BETLEHEM SENJATA", iconURL: icon })
     .setDescription(list)
-    .setColor(0x00ffff) // CYAN
+    .setColor("Red")
     .setFooter({
-      text: `${guild.name} • Weapon Catalog System`,
+      text: `${guild.name} • Copyright ©️2018 - BTHL`,
       iconURL: icon
     })
     .setTimestamp();
@@ -92,7 +90,7 @@ client.once("ready", async () => {
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("order")
-      .setLabel("🛒 ORDER NOW")
+      .setLabel("🛒 ORDER")
       .setStyle(ButtonStyle.Primary)
   );
 
@@ -142,21 +140,18 @@ client.on("interactionCreate", async (interaction) => {
       const embed = new EmbedBuilder()
         .setAuthor({ name: "PILIH SENJATA", iconURL: icon })
         .setDescription("Silakan pilih senjata yang ingin dipesan")
-        .setColor(0x00ffff)
+        .setColor("Blue")
         .setFooter({
           text: `${guildName} • Weapon Store`,
           iconURL: icon
         })
         .setTimestamp();
 
-      const msg = await interaction.reply({
+      return interaction.reply({
         embeds: [embed],
         components: [new ActionRowBuilder().addComponents(select)],
-        ephemeral: true,
-        fetchReply: true
+        ephemeral: true
       });
-
-      tempSelectMsg = msg;
     }
 
     if (interaction.customId.startsWith("sold_")) {
@@ -168,22 +163,16 @@ client.on("interactionCreate", async (interaction) => {
 
       setTimeout(async () => {
         await interaction.message.delete().catch(() => {});
-      }, 1200);
+      }, 1500);
     }
   }
 
   // =======================
-  // SELECT MENU (AUTO DELETE DROPDOWN)
+  // SELECT MENU
   // =======================
   if (interaction.isStringSelectMenu()) {
 
     const senjata = interaction.values[0];
-
-    // 🔥 HAPUS DROPDOWN OTOMATIS
-    if (tempSelectMsg) {
-      await tempSelectMsg.delete().catch(() => {});
-      tempSelectMsg = null;
-    }
 
     const modal = new ModalBuilder()
       .setCustomId(`order_${senjata}`)
@@ -225,7 +214,7 @@ client.on("interactionCreate", async (interaction) => {
     const embed = new EmbedBuilder()
       .setAuthor({ name: "✦ ORDER CONFIRMATION ✦", iconURL: icon })
       .setDescription(
-`## ━━━━ 💠 NEW ORDER RECEIVED 💠 ━━━━
+`## ━━━━ 💠 ORDER SENJATA BETLEHEM 💠 ━━━━
 
 👤 **Customer**
 ➜ <@${interaction.user.id}>
@@ -243,15 +232,16 @@ client.on("interactionCreate", async (interaction) => {
 
 ━━━━━━━━━━━━━━━━━━
 
-🧾 *Weapon Store System*`
+🧾 *BTHL BAGIAN SENJATA By Marunnnn*`
       )
-      .setColor(0x00ffff)
+      .setColor(0x1f1f1f)
       .setFooter({
-        text: `${guildName} • Active Order System`,
+        text: `${guildName} • Order System Active`,
         iconURL: icon
       })
       .setTimestamp();
 
+    // 🔘 BUTTON PREMIUM
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`sold_${orderId}`)
@@ -267,7 +257,17 @@ client.on("interactionCreate", async (interaction) => {
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
-        await oldMsg.edit({ components: [] });
+
+        await oldMsg.edit({
+          components: [
+            new ActionRowBuilder().addComponents(
+              new ButtonBuilder()
+                .setCustomId(`sold_old`)
+                .setLabel("✔ COMPLETE")
+                .setStyle(ButtonStyle.Success)
+            )
+          ]
+        });
       } catch {}
     }
 
