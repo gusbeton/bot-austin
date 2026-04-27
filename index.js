@@ -103,11 +103,11 @@ client.once("ready", async () => {
     .setDescription(
 `📦 **SYSTEM BETLEHEM**
 
-Sistem ini dibuat oleh **Marun** untuk mempermudah order senjata. (MUNGKIN DAN SEMOGA TIDAK ADA ERORR YAA)
+Sistem order senjata otomatis oleh Marun. (MOGA GA ERORR BOT ANJING)
 
 ━━━━━━━━━━━━━━
 
-📌 Klik tombol **PESAN** untuk mulai order`
+📌 Klik tombol PESAN untuk mulai order`
     )
     .addFields({
       name: "📜 LIST SENJATA",
@@ -276,6 +276,7 @@ ${jumlah}
       .setColor("#2b2d31")
       .setTimestamp();
 
+    // 🔥 ROW FIX (INI KUNCI UTAMA)
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`sold_${orderId}`)
