@@ -1,9 +1,9 @@
 {
   "weapons": [
-    { "name": "Litchfield Repeater", "emoji": "<:Litchfield:1498162697676787833>  " },
-    { "name": "Evans Repeater", "emoji": "<:Evans:1498163150326075423> " },
-    { "name": "Lancaster Repeater", "emoji": "<:Winchester:1498163364826976316> " },
-    { "name": "Springfield", "emoji": "<:Springfield:1498163539704283189> " },
-    { "name": "Bolt Action", "emoji": "<:Bolt_Action:1498163695333806243> " }
+    { "name": "Litchfield Repeater", "emoji": "<:Litchfield:1498162697676787833>" },
+    { "name": "Evans Repeater", "emoji": "<:Evans:1498163150326075423>" },
+    { "name": "Lancaster Repeater", "emoji": "<:Winchester:1498163364826976316>" },
+    { "name": "Springfield", "emoji": "<:Springfield:1498163539704283189>" },
+    { "name": "Bolt Action", "emoji": "<:Bolt_Action:1498163695333806243>" }
   ]
 }
