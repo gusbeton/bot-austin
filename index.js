@@ -32,7 +32,7 @@ function loadData() {
 }
 
 // =======================
-// 🔥 EMOJI FIX (GUILD BASED)
+// EMOJI
 // =======================
 function getEmojiDisplay(emoji, guild) {
   if (!emoji) return "🔫";
@@ -43,7 +43,7 @@ function getEmojiDisplay(emoji, guild) {
     if (emojiObj) return emojiObj.toString();
   }
 
-  return "🔫"; // fallback kalau gagal
+  return "🔫";
 }
 
 function getEmojiObject(emoji) {
@@ -59,7 +59,7 @@ function getEmojiObject(emoji) {
 }
 
 // =======================
-// READY
+// READY (CYAN PANEL)
 // =======================
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
@@ -68,8 +68,6 @@ client.once("ready", async () => {
   if (!channel) return console.log("Channel tidak ditemukan");
 
   const guild = channel.guild;
-
-  // 🔥 WAJIB: load emoji dari guild
   await guild.emojis.fetch();
 
   const icon = guild.iconURL({ dynamic: true });
@@ -79,12 +77,13 @@ client.once("ready", async () => {
     .map(w => `${getEmojiDisplay(w.emoji, guild)} • ${w.name}`)
     .join("\n");
 
+  // 💎 CYAN PANEL
   const embed = new EmbedBuilder()
     .setAuthor({ name: "BETLEHEM SENJATA", iconURL: icon })
     .setDescription(list)
-    .setColor("Red")
+    .setColor(0x00ffff) // CYAN
     .setFooter({
-      text: `${guild.name} • Copyright ©️2018 - BTHL`,
+      text: `${guild.name} • Weapon Catalog`,
       iconURL: icon
     })
     .setTimestamp();
@@ -92,7 +91,7 @@ client.once("ready", async () => {
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("order")
-      .setLabel("Pesan")
+      .setLabel("🛒 ORDER")
       .setStyle(ButtonStyle.Primary)
   );
 
@@ -124,7 +123,6 @@ client.on("interactionCreate", async (interaction) => {
   // =======================
   if (interaction.isButton()) {
 
-    // OPEN ORDER
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -143,25 +141,24 @@ client.on("interactionCreate", async (interaction) => {
       const embed = new EmbedBuilder()
         .setAuthor({ name: "PILIH SENJATA", iconURL: icon })
         .setDescription("Silakan pilih senjata yang ingin dipesan")
-        .setColor("Blue")
+        .setColor(0x00ffff)
         .setFooter({
-          text: `${guildName} • Copyright ©️2018 - BTHL`,
+          text: `${guildName} • Weapon Store`,
           iconURL: icon
         })
         .setTimestamp();
 
-      await interaction.reply({
+      return interaction.reply({
         embeds: [embed],
         components: [new ActionRowBuilder().addComponents(select)],
         ephemeral: true
       });
     }
 
-    // SELESAI → AUTO DELETE
     if (interaction.customId.startsWith("sold_")) {
 
       await interaction.reply({
-        content: "✅ Order selesai...",
+        content: "✔ Order selesai diproses",
         ephemeral: true
       });
 
@@ -172,7 +169,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // =======================
-  // SELECT
+  // SELECT MENU
   // =======================
   if (interaction.isStringSelectMenu()) {
 
@@ -195,7 +192,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // =======================
-  // MODAL
+  // MODAL (ORDER FINAL CLEAN)
   // =======================
   if (interaction.isModalSubmit()) {
 
@@ -214,25 +211,26 @@ client.on("interactionCreate", async (interaction) => {
 
     const orderId = Date.now();
 
+    // 💎 CLEAN ORDER EMBED
     const embed = new EmbedBuilder()
-      .setAuthor({ name: "📦 ORDER BARU", iconURL: icon })
+      .setAuthor({ name: "✦ NEW ORDER ✦", iconURL: icon })
       .setDescription(
-`╭━━━ 📋 DETAIL ORDER ━━━╮
+`👤 **PEMESAN**  
+<@${interaction.user.id}>
 
-👤 **Pemesan**
-> <@${interaction.user.id}>
+🔫 **SENJATA**  
+${getEmojiDisplay(weaponData.emoji, guild)} ${senjata}
 
-${getEmojiDisplay(weaponData.emoji, guild)} **Senjata**
-> ${senjata}
+📦 **JUMLAH**  
+**x${jumlah}**
 
-📦 **Jumlah**
-> ${jumlah}
+━━━━━━━━━━━━━━━
 
-╰━━━━━━━━━━━━━━━━━━╯`
+📌 Status: Pending Processing`
       )
-      .setColor("#2b2d31")
+      .setColor(0x2b2d31)
       .setFooter({
-        text: `${guildName} • Menunggu diproses`,
+        text: `${guildName} • Order System`,
         iconURL: icon
       })
       .setTimestamp();
@@ -240,35 +238,24 @@ ${getEmojiDisplay(weaponData.emoji, guild)} **Senjata**
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`sold_${orderId}`)
-        .setLabel("Selesai")
-        .setStyle(ButtonStyle.Danger),
+        .setLabel("✔ COMPLETE")
+        .setStyle(ButtonStyle.Success),
 
       new ButtonBuilder()
         .setCustomId("order")
-        .setLabel("Pesan Lagi")
+        .setLabel("🛒 NEW ORDER")
         .setStyle(ButtonStyle.Primary)
     );
 
-    // EDIT ORDER LAMA (hapus tombol order lama)
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
-        const oldId = oldMsg.components[0]?.components[0]?.customId?.split("_")[1];
-
-        const oldRow = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId(`sold_${oldId}`)
-            .setLabel("Selesai")
-            .setStyle(ButtonStyle.Danger)
-        );
-
-        await oldMsg.edit({ components: [oldRow] });
-
+        await oldMsg.edit({ components: [] });
       } catch {}
     }
 
     await interaction.reply({
-      content: "✅ Order berhasil dikirim",
+      content: "✔ Order berhasil dikirim",
       ephemeral: true
     });
 
