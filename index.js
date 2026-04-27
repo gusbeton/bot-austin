@@ -23,6 +23,7 @@ const client = new Client({
 const CHANNEL_ID = "1498061270165884928";
 
 let lastOrderMessageId = null;
+let tempSelectMsg = null;
 
 // =======================
 // DATA
@@ -32,7 +33,7 @@ function loadData() {
 }
 
 // =======================
-// EMOJI FIX
+// EMOJI
 // =======================
 function getEmojiDisplay(emoji, guild) {
   if (!emoji) return "🔫";
@@ -59,7 +60,7 @@ function getEmojiObject(emoji) {
 }
 
 // =======================
-// READY
+// READY (CYAN PANEL)
 // =======================
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
@@ -77,12 +78,13 @@ client.once("ready", async () => {
     .map(w => `${getEmojiDisplay(w.emoji, guild)} • ${w.name}`)
     .join("\n");
 
+  // 💎 CYAN PREMIUM PANEL
   const embed = new EmbedBuilder()
-    .setAuthor({ name: "BETLEHEM SENJATA", iconURL: icon })
+    .setAuthor({ name: "BETHLEHEM WEAPON STORE", iconURL: icon })
     .setDescription(list)
-    .setColor("Red")
+    .setColor(0x00ffff) // CYAN
     .setFooter({
-      text: `${guild.name} • Copyright ©️2018 - BTHL`,
+      text: `${guild.name} • Weapon Catalog System`,
       iconURL: icon
     })
     .setTimestamp();
@@ -90,7 +92,7 @@ client.once("ready", async () => {
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("order")
-      .setLabel("🛒 ORDER")
+      .setLabel("🛒 ORDER NOW")
       .setStyle(ButtonStyle.Primary)
   );
 
@@ -140,18 +142,21 @@ client.on("interactionCreate", async (interaction) => {
       const embed = new EmbedBuilder()
         .setAuthor({ name: "PILIH SENJATA", iconURL: icon })
         .setDescription("Silakan pilih senjata yang ingin dipesan")
-        .setColor("Blue")
+        .setColor(0x00ffff)
         .setFooter({
           text: `${guildName} • Weapon Store`,
           iconURL: icon
         })
         .setTimestamp();
 
-      return interaction.reply({
+      const msg = await interaction.reply({
         embeds: [embed],
         components: [new ActionRowBuilder().addComponents(select)],
-        ephemeral: true
+        ephemeral: true,
+        fetchReply: true
       });
+
+      tempSelectMsg = msg;
     }
 
     if (interaction.customId.startsWith("sold_")) {
@@ -163,16 +168,22 @@ client.on("interactionCreate", async (interaction) => {
 
       setTimeout(async () => {
         await interaction.message.delete().catch(() => {});
-      }, 1500);
+      }, 1200);
     }
   }
 
   // =======================
-  // SELECT MENU
+  // SELECT MENU (AUTO DELETE DROPDOWN)
   // =======================
   if (interaction.isStringSelectMenu()) {
 
     const senjata = interaction.values[0];
+
+    // 🔥 HAPUS DROPDOWN OTOMATIS
+    if (tempSelectMsg) {
+      await tempSelectMsg.delete().catch(() => {});
+      tempSelectMsg = null;
+    }
 
     const modal = new ModalBuilder()
       .setCustomId(`order_${senjata}`)
@@ -232,16 +243,15 @@ client.on("interactionCreate", async (interaction) => {
 
 ━━━━━━━━━━━━━━━━━━
 
-🧾 *BTHL Weapon Store System*`
+🧾 *Weapon Store System*`
       )
-      .setColor(0x1f1f1f)
+      .setColor(0x00ffff)
       .setFooter({
-        text: `${guildName} • Order System Active`,
+        text: `${guildName} • Active Order System`,
         iconURL: icon
       })
       .setTimestamp();
 
-    // 🔘 BUTTON PREMIUM
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`sold_${orderId}`)
@@ -257,17 +267,7 @@ client.on("interactionCreate", async (interaction) => {
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
-
-        await oldMsg.edit({
-          components: [
-            new ActionRowBuilder().addComponents(
-              new ButtonBuilder()
-                .setCustomId(`sold_old`)
-                .setLabel("✔ COMPLETE")
-                .setStyle(ButtonStyle.Success)
-            )
-          ]
-        });
+        await oldMsg.edit({ components: [] });
       } catch {}
     }
 
