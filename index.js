@@ -14,7 +14,10 @@ const {
 const fs = require("fs");
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildEmojisAndStickers]
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildEmojisAndStickers
+  ]
 });
 
 const CHANNEL_ID = "1498061270165884928";
@@ -29,19 +32,18 @@ function loadData() {
 }
 
 // =======================
-// 🔥 EMOJI FIX HARDCORE
+// 🔥 EMOJI FIX (GUILD BASED)
 // =======================
-function getEmojiDisplay(emoji) {
+function getEmojiDisplay(emoji, guild) {
   if (!emoji) return "🔫";
 
   const match = emoji.match(/\d+/);
   if (match) {
-    const emojiObj = client.emojis.cache.get(match[0]);
+    const emojiObj = guild.emojis.cache.get(match[0]);
     if (emojiObj) return emojiObj.toString();
   }
 
-  // fallback unicode / fail
-  return "🔫";
+  return "🔫"; // fallback kalau gagal
 }
 
 function getEmojiObject(emoji) {
@@ -62,19 +64,19 @@ function getEmojiObject(emoji) {
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
 
-  // 🔥 preload emoji cache
-  client.guilds.cache.forEach(g => g.emojis.fetch());
-
   const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
   if (!channel) return console.log("Channel tidak ditemukan");
 
   const guild = channel.guild;
-  const icon = guild.iconURL({ dynamic: true });
 
+  // 🔥 WAJIB: load emoji dari guild
+  await guild.emojis.fetch();
+
+  const icon = guild.iconURL({ dynamic: true });
   const data = loadData();
 
   const list = data.weapons
-    .map(w => `${getEmojiDisplay(w.emoji)} • ${w.name}`)
+    .map(w => `${getEmojiDisplay(w.emoji, guild)} • ${w.name}`)
     .join("\n");
 
   const embed = new EmbedBuilder()
@@ -113,11 +115,16 @@ client.once("ready", async () => {
 // =======================
 client.on("interactionCreate", async (interaction) => {
 
-  const icon = interaction.guild.iconURL({ dynamic: true });
-  const guildName = interaction.guild.name;
+  const guild = interaction.guild;
+  const icon = guild.iconURL({ dynamic: true });
+  const guildName = guild.name;
 
+  // =======================
+  // BUTTON
+  // =======================
   if (interaction.isButton()) {
 
+    // OPEN ORDER
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -150,7 +157,7 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // AUTO DELETE
+    // SELESAI → AUTO DELETE
     if (interaction.customId.startsWith("sold_")) {
 
       await interaction.reply({
@@ -164,6 +171,9 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
+  // =======================
+  // SELECT
+  // =======================
   if (interaction.isStringSelectMenu()) {
 
     const senjata = interaction.values[0];
@@ -184,6 +194,9 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.showModal(modal);
   }
 
+  // =======================
+  // MODAL
+  // =======================
   if (interaction.isModalSubmit()) {
 
     const senjata = interaction.customId.replace("order_", "");
@@ -209,7 +222,7 @@ client.on("interactionCreate", async (interaction) => {
 👤 **Pemesan**
 > <@${interaction.user.id}>
 
-${getEmojiDisplay(weaponData.emoji)} **Senjata**
+${getEmojiDisplay(weaponData.emoji, guild)} **Senjata**
 > ${senjata}
 
 📦 **Jumlah**
@@ -235,6 +248,24 @@ ${getEmojiDisplay(weaponData.emoji)} **Senjata**
         .setLabel("Pesan Lagi")
         .setStyle(ButtonStyle.Primary)
     );
+
+    // EDIT ORDER LAMA (hapus tombol order lama)
+    if (lastOrderMessageId) {
+      try {
+        const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
+        const oldId = oldMsg.components[0]?.components[0]?.customId?.split("_")[1];
+
+        const oldRow = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`sold_${oldId}`)
+            .setLabel("Selesai")
+            .setStyle(ButtonStyle.Danger)
+        );
+
+        await oldMsg.edit({ components: [oldRow] });
+
+      } catch {}
+    }
 
     await interaction.reply({
       content: "✅ Order berhasil dikirim",
