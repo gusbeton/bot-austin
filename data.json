@@ -1,9 +1,9 @@
 {
   "weapons": [
-    { "name": "Litchfield Repeater", "stock": 6 },
-    { "name": "Evans Repeater", "stock": 6 },
-    { "name": "Lancaster Repeater", "stock": 5 },
-    { "name": "Springfield", "stock": 5 },
-    { "name": "Bolt Action", "stock": 4 }
+    { "name": "Litchfield Repeater" },
+    { "name": "Evans Repeater" },
+    { "name": "Lancaster Repeater" },
+    { "name": "Springfield" },
+    { "name": "Bolt Action" }
   ]
 }
