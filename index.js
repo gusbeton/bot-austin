@@ -87,6 +87,7 @@ client.on("interactionCreate", async (interaction) => {
   // =======================
   if (interaction.isButton()) {
 
+    // PESAN
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -118,21 +119,26 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
+    // 🔥 SELESAI → AUTO DELETE
     if (interaction.customId.startsWith("sold_")) {
 
-      const embed = EmbedBuilder.from(interaction.message.embeds[0])
-        .setColor("Grey")
-        .addFields({ name: "Status", value: "✅ Selesai" })
-        .setFooter({
-          text: `${guildName} • Order selesai`,
-          iconURL: icon
-        })
-        .setTimestamp();
-
-      await interaction.update({
-        embeds: [embed],
-        components: []
+      await interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor("Green")
+            .setDescription("✅ Order selesai, menghapus...")
+            .setFooter({
+              text: `${guildName}`,
+              iconURL: icon
+            })
+            .setTimestamp()
+        ],
+        ephemeral: true
       });
+
+      setTimeout(async () => {
+        await interaction.message.delete().catch(() => {});
+      }, 1500);
     }
   }
 
@@ -164,6 +170,9 @@ client.on("interactionCreate", async (interaction) => {
   // =======================
   if (interaction.isModalSubmit()) {
 
+    const icon = interaction.guild.iconURL({ dynamic: true });
+    const guildName = interaction.guild.name;
+
     const senjata = interaction.customId.replace("order_", "");
     const jumlah = parseInt(interaction.fields.getTextInputValue("jumlah"));
 
@@ -176,10 +185,7 @@ client.on("interactionCreate", async (interaction) => {
           new EmbedBuilder()
             .setColor("Red")
             .setDescription("❌ Senjata tidak ditemukan")
-            .setFooter({
-              text: `${guildName}`,
-              iconURL: icon
-            })
+            .setFooter({ text: guildName, iconURL: icon })
             .setTimestamp()
         ],
         ephemeral: true
@@ -192,10 +198,7 @@ client.on("interactionCreate", async (interaction) => {
           new EmbedBuilder()
             .setColor("Red")
             .setDescription("❌ Jumlah tidak valid")
-            .setFooter({
-              text: `${guildName}`,
-              iconURL: icon
-            })
+            .setFooter({ text: guildName, iconURL: icon })
             .setTimestamp()
         ],
         ephemeral: true
@@ -204,7 +207,7 @@ client.on("interactionCreate", async (interaction) => {
 
     const orderId = Date.now();
 
-    // 🔥 EXOTIC ORDER
+    // 🔥 EXOTIC ORDER EMBED
     const embed = new EmbedBuilder()
       .setAuthor({ name: "📦 ORDER BARU", iconURL: icon })
       .setDescription(
@@ -240,6 +243,7 @@ client.on("interactionCreate", async (interaction) => {
         .setStyle(ButtonStyle.Primary)
     );
 
+    // EDIT ORDER LAMA
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
