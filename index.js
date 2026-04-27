@@ -26,7 +26,7 @@ const client = new Client({
   ]
 });
 
-const CHANNEL_ID = "1498061270165884928";
+const CHANNEL_ID = "1496547592622833764";
 const VOICE_CHANNEL_ID = "1488854856633680083";
 
 let lastOrderMessageId = null;
