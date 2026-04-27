@@ -80,7 +80,7 @@ client.once("ready", async () => {
   const embed = new EmbedBuilder()
     .setAuthor({ name: "BETLEHEM SENJATA", iconURL: icon })
     .setDescription(list)
-    .setColor("0x00ffff")
+    .setColor(0x00ffff) // ✅ FIX CYAN (INI YANG BENER)
     .setFooter({
       text: `${guild.name} • Copyright ©️2018 - BTHL`,
       iconURL: icon
@@ -117,9 +117,7 @@ client.on("interactionCreate", async (interaction) => {
   const icon = guild.iconURL({ dynamic: true });
   const guildName = guild.name;
 
-  // =======================
   // BUTTON
-  // =======================
   if (interaction.isButton()) {
 
     if (interaction.customId === "order") {
@@ -140,7 +138,7 @@ client.on("interactionCreate", async (interaction) => {
       const embed = new EmbedBuilder()
         .setAuthor({ name: "PILIH SENJATA", iconURL: icon })
         .setDescription("Silakan pilih senjata yang ingin dipesan")
-        .setColor("Blue")
+        .setColor(0x00ffff)
         .setFooter({
           text: `${guildName} • Weapon Store`,
           iconURL: icon
@@ -167,9 +165,7 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
-  // =======================
   // SELECT MENU
-  // =======================
   if (interaction.isStringSelectMenu()) {
 
     const senjata = interaction.values[0];
@@ -190,9 +186,7 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.showModal(modal);
   }
 
-  // =======================
-  // MODAL (ORDER FINAL)
-  // =======================
+  // MODAL ORDER
   if (interaction.isModalSubmit()) {
 
     const senjata = interaction.customId.replace("order_", "");
@@ -210,7 +204,6 @@ client.on("interactionCreate", async (interaction) => {
 
     const orderId = Date.now();
 
-    // 💎 LUXURY ORDER EMBED
     const embed = new EmbedBuilder()
       .setAuthor({ name: "✦ ORDER CONFIRMATION ✦", iconURL: icon })
       .setDescription(
@@ -236,12 +229,11 @@ client.on("interactionCreate", async (interaction) => {
       )
       .setColor(0x1f1f1f)
       .setFooter({
-        text: `${guildName} •  Copyright ©️2018 - BTHL`,
+        text: `${guildName} • Copyright ©️2018 - BTHL`,
         iconURL: icon
       })
       .setTimestamp();
 
-    // 🔘 BUTTON PREMIUM
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`sold_${orderId}`)
@@ -257,17 +249,7 @@ client.on("interactionCreate", async (interaction) => {
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
-
-        await oldMsg.edit({
-          components: [
-            new ActionRowBuilder().addComponents(
-              new ButtonBuilder()
-                .setCustomId(`sold_old`)
-                .setLabel("✔ COMPLETE")
-                .setStyle(ButtonStyle.Success)
-            )
-          ]
-        });
+        await oldMsg.edit({ components: [] });
       } catch {}
     }
 
