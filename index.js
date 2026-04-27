@@ -103,7 +103,7 @@ client.once("ready", async () => {
     .setDescription(
 `📦 **SYSTEM BETLEHEM**
 
-Ini adalah sistem **Betlehem Order senjata berangkas** yang dibuat oleh **Marun** untuk mempermudah order senjata.
+Ini adalah sistem **Betlehem Order senjata berangkas** yang dibuat oleh **Marun** untuk mempermudah order senjata. (MUNGKIN HEHEHE)
 
 ━━━━━━━━━━━━━━
 
