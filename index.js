@@ -227,11 +227,13 @@ client.on("interactionCreate", async (interaction) => {
 ━━━━━━━━━━━━━━
 
 ${getEmojiDisplay(weaponData.emoji, guild)} **SENJATA**
+
 ${senjata}
 
 ━━━━━━━━━━━━━━
 
 📦 **JUMLAH**
+
 ${jumlah}
 
 ━━━━━━━━━━━━━━`
