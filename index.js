@@ -80,7 +80,7 @@ client.once("ready", async () => {
   const embed = new EmbedBuilder()
     .setAuthor({ name: "BETLEHEM SENJATA", iconURL: icon })
     .setDescription(list)
-    .setColor("Red")
+    .setColor("Cyan")
     .setFooter({
       text: `${guild.name} • Copyright ©️2018 - BTHL`,
       iconURL: icon
@@ -236,7 +236,7 @@ client.on("interactionCreate", async (interaction) => {
       )
       .setColor(0x1f1f1f)
       .setFooter({
-        text: `${guildName} • Order System Active`,
+        text: `${guildName} •  Copyright ©️2018 - BTHL`,
         iconURL: icon
       })
       .setTimestamp();
