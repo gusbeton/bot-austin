@@ -69,7 +69,7 @@ function getEmojiObject(emoji) {
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
 
-  // 🔊 AUTO VOICE JOIN
+  // 🔊 VOICE 24/7
   const voiceChannel = await client.channels.fetch(VOICE_CHANNEL_ID).catch(() => null);
 
   if (voiceChannel) {
@@ -81,7 +81,7 @@ client.once("ready", async () => {
     });
 
     connection.on(VoiceConnectionStatus.Ready, () => {
-      console.log("🎧 Voice 24/7 aktif");
+      console.log("🎧 Voice aktif 24/7");
     });
   }
 
@@ -103,11 +103,11 @@ client.once("ready", async () => {
     .setDescription(
 `📦 **SYSTEM BETLEHEM**
 
-Ini adalah sistem **Betlehem Order senjata berangkas** yang dibuat oleh **Marun** untuk mempermudah order senjata. (MUNGKIN HEHEHE)
+Sistem ini dibuat oleh **Marun** untuk mempermudah order senjata.
 
 ━━━━━━━━━━━━━━
 
-📌 Klik tombol **PESAN** untuk order`
+📌 Klik tombol **PESAN** untuk mulai order`
     )
     .addFields({
       name: "📜 LIST SENJATA",
@@ -141,7 +141,7 @@ Ini adalah sistem **Betlehem Order senjata berangkas** yang dibuat oleh **Marun*
 });
 
 // =======================
-// VOICE AUTO RECONNECT
+// AUTO VOICE RECONNECT
 // =======================
 setInterval(async () => {
   const channel = await client.channels.fetch(VOICE_CHANNEL_ID).catch(() => null);
@@ -199,9 +199,6 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // =======================
-    // SELESAI (PER ORDER)
-    // =======================
     if (interaction.customId.startsWith("sold_")) {
 
       const msg = interaction.message;
@@ -241,7 +238,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // =======================
-  // MODAL SUBMIT (ORDER)
+  // MODAL SUBMIT
   // =======================
   if (interaction.isModalSubmit()) {
 
