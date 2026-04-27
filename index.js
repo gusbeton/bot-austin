@@ -80,7 +80,7 @@ client.once("ready", async () => {
   const embed = new EmbedBuilder()
     .setAuthor({ name: "BETLEHEM SENJATA", iconURL: icon })
     .setDescription(list)
-    .setColor("Cyan")
+    .setColor("0x00ffff")
     .setFooter({
       text: `${guild.name} • Copyright ©️2018 - BTHL`,
       iconURL: icon
