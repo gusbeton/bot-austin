@@ -11,6 +11,12 @@ const {
   StringSelectMenuBuilder
 } = require("discord.js");
 
+const {
+  joinVoiceChannel,
+  getVoiceConnection,
+  VoiceConnectionStatus
+} = require("@discordjs/voice");
+
 const fs = require("fs");
 
 const client = new Client({
@@ -21,6 +27,7 @@ const client = new Client({
 });
 
 const CHANNEL_ID = "1498061270165884928";
+const VOICE_CHANNEL_ID = "1488854856633680083";
 
 let lastOrderMessageId = null;
 
@@ -32,7 +39,7 @@ function loadData() {
 }
 
 // =======================
-// 🔥 EMOJI FIX (GUILD BASED)
+// EMOJI
 // =======================
 function getEmojiDisplay(emoji, guild) {
   if (!emoji) return "🔫";
@@ -43,7 +50,7 @@ function getEmojiDisplay(emoji, guild) {
     if (emojiObj) return emojiObj.toString();
   }
 
-  return "🔫"; // fallback kalau gagal
+  return "🔫";
 }
 
 function getEmojiObject(emoji) {
@@ -64,12 +71,29 @@ function getEmojiObject(emoji) {
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
 
+  // =======================
+  // 🔊 AUTO JOIN VOICE
+  // =======================
+  const voiceChannel = await client.channels.fetch(VOICE_CHANNEL_ID).catch(() => null);
+
+  if (voiceChannel) {
+    const connection = joinVoiceChannel({
+      channelId: voiceChannel.id,
+      guildId: voiceChannel.guild.id,
+      adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+      selfDeaf: true
+    });
+
+    connection.on(VoiceConnectionStatus.Ready, () => {
+      console.log("🎧 Bot masuk voice (24/7 aktif)");
+    });
+  }
+
   const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
   if (!channel) return console.log("Channel tidak ditemukan");
 
   const guild = channel.guild;
 
-  // 🔥 WAJIB: load emoji dari guild
   await guild.emojis.fetch();
 
   const icon = guild.iconURL({ dynamic: true });
@@ -111,6 +135,27 @@ client.once("ready", async () => {
 });
 
 // =======================
+// AUTO RECONNECT VOICE
+// =======================
+setInterval(async () => {
+  const channel = await client.channels.fetch(VOICE_CHANNEL_ID).catch(() => null);
+  if (!channel) return;
+
+  const connection = getVoiceConnection(channel.guild.id);
+
+  if (!connection) {
+    joinVoiceChannel({
+      channelId: channel.id,
+      guildId: channel.guild.id,
+      adapterCreator: channel.guild.voiceAdapterCreator,
+      selfDeaf: true
+    });
+
+    console.log("🔁 Reconnect voice berhasil");
+  }
+}, 60 * 1000);
+
+// =======================
 // INTERACTION
 // =======================
 client.on("interactionCreate", async (interaction) => {
@@ -119,12 +164,8 @@ client.on("interactionCreate", async (interaction) => {
   const icon = guild.iconURL({ dynamic: true });
   const guildName = guild.name;
 
-  // =======================
-  // BUTTON
-  // =======================
   if (interaction.isButton()) {
 
-    // OPEN ORDER
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -143,12 +184,7 @@ client.on("interactionCreate", async (interaction) => {
       const embed = new EmbedBuilder()
         .setAuthor({ name: "PILIH SENJATA", iconURL: icon })
         .setDescription("Silakan pilih senjata yang ingin dipesan")
-        .setColor("Blue")
-        .setFooter({
-          text: `${guildName} • Copyright ©️2018 - BTHL`,
-          iconURL: icon
-        })
-        .setTimestamp();
+        .setColor("Blue");
 
       await interaction.reply({
         embeds: [embed],
@@ -157,7 +193,6 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // SELESAI → AUTO DELETE
     if (interaction.customId.startsWith("sold_")) {
 
       await interaction.reply({
@@ -165,15 +200,12 @@ client.on("interactionCreate", async (interaction) => {
         ephemeral: true
       });
 
-      setTimeout(async () => {
-        await interaction.message.delete().catch(() => {});
+      setTimeout(() => {
+        interaction.message.delete().catch(() => {});
       }, 1500);
     }
   }
 
-  // =======================
-  // SELECT
-  // =======================
   if (interaction.isStringSelectMenu()) {
 
     const senjata = interaction.values[0];
@@ -194,9 +226,6 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.showModal(modal);
   }
 
-  // =======================
-  // MODAL
-  // =======================
   if (interaction.isModalSubmit()) {
 
     const senjata = interaction.customId.replace("order_", "");
@@ -212,31 +241,19 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    const orderId = Date.now();
-
     const embed = new EmbedBuilder()
       .setAuthor({ name: "📦 ORDER BARU", iconURL: icon })
       .setDescription(
 `📦 **DETAIL ORDER**
 
-━━━━━━━━━━━━━━
-
 👤 **PEMESAN**
 <@${interaction.user.id}>
 
-━━━━━━━━━━━━━━
-
 ${getEmojiDisplay(weaponData.emoji, guild)} **SENJATA**
-
 ${senjata}
 
-━━━━━━━━━━━━━━
-
 📦 **JUMLAH**
-
-${jumlah}
-
-━━━━━━━━━━━━━━`
+${jumlah}`
       )
       .setColor("#2b2d31")
       .setFooter({
@@ -244,6 +261,8 @@ ${jumlah}
         iconURL: icon
       })
       .setTimestamp();
+
+    const orderId = Date.now();
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -257,21 +276,10 @@ ${jumlah}
         .setStyle(ButtonStyle.Primary)
     );
 
-    // EDIT ORDER LAMA (hapus tombol order lama)
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
-        const oldId = oldMsg.components[0]?.components[0]?.customId?.split("_")[1];
-
-        const oldRow = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId(`sold_${oldId}`)
-            .setLabel("Selesai")
-            .setStyle(ButtonStyle.Danger)
-        );
-
-        await oldMsg.edit({ components: [oldRow] });
-
+        await oldMsg.edit({ components: [] });
       } catch {}
     }
 
