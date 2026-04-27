@@ -14,7 +14,7 @@ const {
 const fs = require("fs");
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildEmojisAndStickers]
 });
 
 const CHANNEL_ID = "1498061270165884928";
@@ -29,26 +29,30 @@ function loadData() {
 }
 
 // =======================
-// 🔥 EMOJI HANDLER
+// 🔥 EMOJI FIX HARDCORE
 // =======================
 function getEmojiDisplay(emoji) {
   if (!emoji) return "🔫";
-  return emoji;
+
+  const match = emoji.match(/\d+/);
+  if (match) {
+    const emojiObj = client.emojis.cache.get(match[0]);
+    if (emojiObj) return emojiObj.toString();
+  }
+
+  // fallback unicode / fail
+  return "🔫";
 }
 
 function getEmojiObject(emoji) {
   if (!emoji) return undefined;
 
-  // custom emoji <:name:id>
-  if (emoji.startsWith("<:")) {
-    const id = emoji.match(/\d+/)?.[0];
+  const match = emoji.match(/\d+/);
+  if (match) {
     const name = emoji.match(/:(.*?):/)?.[1];
-    if (id && name) {
-      return { id, name };
-    }
+    return { id: match[0], name };
   }
 
-  // unicode emoji
   return emoji;
 }
 
@@ -57,6 +61,9 @@ function getEmojiObject(emoji) {
 // =======================
 client.once("ready", async () => {
   console.log(`Login sebagai ${client.user.tag}`);
+
+  // 🔥 preload emoji cache
+  client.guilds.cache.forEach(g => g.emojis.fetch());
 
   const channel = await client.channels.fetch(CHANNEL_ID).catch(() => null);
   if (!channel) return console.log("Channel tidak ditemukan");
@@ -109,9 +116,6 @@ client.on("interactionCreate", async (interaction) => {
   const icon = interaction.guild.iconURL({ dynamic: true });
   const guildName = interaction.guild.name;
 
-  // =======================
-  // BUTTON
-  // =======================
   if (interaction.isButton()) {
 
     if (interaction.customId === "order") {
@@ -146,20 +150,11 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    // SELESAI → AUTO DELETE
+    // AUTO DELETE
     if (interaction.customId.startsWith("sold_")) {
 
       await interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor("Green")
-            .setDescription("✅ Order selesai, menghapus...")
-            .setFooter({
-              text: `${guildName}`,
-              iconURL: icon
-            })
-            .setTimestamp()
-        ],
+        content: "✅ Order selesai...",
         ephemeral: true
       });
 
@@ -169,9 +164,6 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
-  // =======================
-  // SELECT
-  // =======================
   if (interaction.isStringSelectMenu()) {
 
     const senjata = interaction.values[0];
@@ -192,9 +184,6 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.showModal(modal);
   }
 
-  // =======================
-  // MODAL
-  // =======================
   if (interaction.isModalSubmit()) {
 
     const senjata = interaction.customId.replace("order_", "");
@@ -203,28 +192,9 @@ client.on("interactionCreate", async (interaction) => {
     const data = loadData();
     const weaponData = data.weapons.find(w => w.name === senjata);
 
-    if (!weaponData) {
+    if (!weaponData || isNaN(jumlah) || jumlah <= 0) {
       return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor("Red")
-            .setDescription("❌ Senjata tidak ditemukan")
-            .setFooter({ text: guildName, iconURL: icon })
-            .setTimestamp()
-        ],
-        ephemeral: true
-      });
-    }
-
-    if (isNaN(jumlah) || jumlah <= 0) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor("Red")
-            .setDescription("❌ Jumlah tidak valid")
-            .setFooter({ text: guildName, iconURL: icon })
-            .setTimestamp()
-        ],
+        content: "❌ Data tidak valid",
         ephemeral: true
       });
     }
@@ -266,35 +236,8 @@ ${getEmojiDisplay(weaponData.emoji)} **Senjata**
         .setStyle(ButtonStyle.Primary)
     );
 
-    if (lastOrderMessageId) {
-      try {
-        const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
-
-        const oldId = oldMsg.components[0]?.components[0]?.customId?.split("_")[1];
-
-        const oldRow = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId(`sold_${oldId}`)
-            .setLabel("Selesai")
-            .setStyle(ButtonStyle.Danger)
-        );
-
-        await oldMsg.edit({ components: [oldRow] });
-
-      } catch {}
-    }
-
     await interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Green")
-          .setDescription("✅ Order berhasil dikirim")
-          .setFooter({
-            text: `${guildName} • Copyright ©️2018 - BTHL`,
-            iconURL: icon
-          })
-          .setTimestamp()
-      ],
+      content: "✅ Order berhasil dikirim",
       ephemeral: true
     });
 
