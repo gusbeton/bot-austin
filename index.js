@@ -32,7 +32,7 @@ function loadData() {
 }
 
 // =======================
-// 🔥 EMOJI FIX (GUILD BASED)
+// EMOJI FIX
 // =======================
 function getEmojiDisplay(emoji, guild) {
   if (!emoji) return "🔫";
@@ -43,7 +43,7 @@ function getEmojiDisplay(emoji, guild) {
     if (emojiObj) return emojiObj.toString();
   }
 
-  return "🔫"; // fallback kalau gagal
+  return "🔫";
 }
 
 function getEmojiObject(emoji) {
@@ -68,8 +68,6 @@ client.once("ready", async () => {
   if (!channel) return console.log("Channel tidak ditemukan");
 
   const guild = channel.guild;
-
-  // 🔥 WAJIB: load emoji dari guild
   await guild.emojis.fetch();
 
   const icon = guild.iconURL({ dynamic: true });
@@ -92,7 +90,7 @@ client.once("ready", async () => {
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("order")
-      .setLabel("Pesan")
+      .setLabel("🛒 ORDER")
       .setStyle(ButtonStyle.Primary)
   );
 
@@ -124,7 +122,6 @@ client.on("interactionCreate", async (interaction) => {
   // =======================
   if (interaction.isButton()) {
 
-    // OPEN ORDER
     if (interaction.customId === "order") {
 
       const data = loadData();
@@ -145,23 +142,22 @@ client.on("interactionCreate", async (interaction) => {
         .setDescription("Silakan pilih senjata yang ingin dipesan")
         .setColor("Blue")
         .setFooter({
-          text: `${guildName} • Copyright ©️2018 - BTHL`,
+          text: `${guildName} • Weapon Store`,
           iconURL: icon
         })
         .setTimestamp();
 
-      await interaction.reply({
+      return interaction.reply({
         embeds: [embed],
         components: [new ActionRowBuilder().addComponents(select)],
         ephemeral: true
       });
     }
 
-    // SELESAI → AUTO DELETE
     if (interaction.customId.startsWith("sold_")) {
 
       await interaction.reply({
-        content: "✅ Order selesai...",
+        content: "✔ Order selesai diproses",
         ephemeral: true
       });
 
@@ -172,7 +168,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // =======================
-  // SELECT
+  // SELECT MENU
   // =======================
   if (interaction.isStringSelectMenu()) {
 
@@ -195,7 +191,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // =======================
-  // MODAL
+  // MODAL (ORDER FINAL)
   // =======================
   if (interaction.isModalSubmit()) {
 
@@ -214,61 +210,69 @@ client.on("interactionCreate", async (interaction) => {
 
     const orderId = Date.now();
 
+    // 💎 LUXURY ORDER EMBED
     const embed = new EmbedBuilder()
-      .setAuthor({ name: "📦 ORDER BARU", iconURL: icon })
+      .setAuthor({ name: "✦ ORDER CONFIRMATION ✦", iconURL: icon })
       .setDescription(
-`╭━━━ 📋 DETAIL ORDER ━━━╮
+`## ━━━━ 💠 NEW ORDER RECEIVED 💠 ━━━━
 
-👤 **Pemesan**
-> <@${interaction.user.id}>
+👤 **Customer**
+➜ <@${interaction.user.id}>
 
-${getEmojiDisplay(weaponData.emoji, guild)} **Senjata**
+╭──────────────────────╮
+🔫 **Weapon**
 > ${senjata}
 
-📦 **Jumlah**
+📦 **Quantity**
 > ${jumlah}
+╰──────────────────────╯
 
-╰━━━━━━━━━━━━━━━━━━╯`
+✨ **Status**
+> Pending Processing
+
+━━━━━━━━━━━━━━━━━━
+
+🧾 *BTHL Weapon Store System*`
       )
-      .setColor("#2b2d31")
+      .setColor(0x1f1f1f)
       .setFooter({
-        text: `${guildName} • Menunggu diproses`,
+        text: `${guildName} • Order System Active`,
         iconURL: icon
       })
       .setTimestamp();
 
+    // 🔘 BUTTON PREMIUM
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`sold_${orderId}`)
-        .setLabel("Selesai")
-        .setStyle(ButtonStyle.Danger),
+        .setLabel("✔ COMPLETE")
+        .setStyle(ButtonStyle.Success),
 
       new ButtonBuilder()
         .setCustomId("order")
-        .setLabel("Pesan Lagi")
+        .setLabel("🛒 NEW ORDER")
         .setStyle(ButtonStyle.Primary)
     );
 
-    // EDIT ORDER LAMA (hapus tombol order lama)
     if (lastOrderMessageId) {
       try {
         const oldMsg = await interaction.channel.messages.fetch(lastOrderMessageId);
-        const oldId = oldMsg.components[0]?.components[0]?.customId?.split("_")[1];
 
-        const oldRow = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId(`sold_${oldId}`)
-            .setLabel("Selesai")
-            .setStyle(ButtonStyle.Danger)
-        );
-
-        await oldMsg.edit({ components: [oldRow] });
-
+        await oldMsg.edit({
+          components: [
+            new ActionRowBuilder().addComponents(
+              new ButtonBuilder()
+                .setCustomId(`sold_old`)
+                .setLabel("✔ COMPLETE")
+                .setStyle(ButtonStyle.Success)
+            )
+          ]
+        });
       } catch {}
     }
 
     await interaction.reply({
-      content: "✅ Order berhasil dikirim",
+      content: "✔ Order berhasil dikirim",
       ephemeral: true
     });
 
